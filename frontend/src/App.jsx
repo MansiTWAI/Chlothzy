@@ -3,11 +3,11 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Components
-import Navbar from './Components/Navbar';
-import SearchBar from './Components/SearchBar';
+// components
+import Navbar from './components/Navbar';
+import SearchBar from './components/SearchBar';
 import Wishlist from './pages/Wishlist';
-import Footer from './Components/Footer';
+import Footer from './components/Footer';
 
 // Lazy Loading for Performance
 const Home = lazy(() => import('./pages/Home'));
