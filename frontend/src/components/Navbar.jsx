@@ -11,7 +11,7 @@ import {
   Heart,
 } from "lucide-react";
 import SearchBar from "./SearchBar";
-import logo from "../assets/logo.jpeg";
+import logo from "../assets/logo1.png";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -69,7 +69,7 @@ const Navbar = () => {
     : "FOR NEW MEMBERS";
 
   return (
-    <header className="fixed top-0 left-0 w-full z-[1000] h-10 font-sans select-none">
+    <header className="fixed top-0 left-0 w-full z-[1000]  font-sans select-none">
       {/* Top Banner */}
       {showBanner && (
         <div className="w-full bg-black text-white py-2.5 px-4 relative flex items-center justify-center z-[1002]">
@@ -103,7 +103,7 @@ const Navbar = () => {
           <Link to="/" className="flex items-center">
             <img
               src={logo}
-              className="w-24 sm:w-32 md:w-36 lg:w-40 h-15 pt-1 object-contain"
+              className="w-30 sm:w-32 md:w-36 lg:w-40 h-20 pt-1 object-contain"
               alt="Company Logo"
             />
           </Link>
@@ -178,12 +178,12 @@ const Navbar = () => {
             {token && (
               <div className="absolute right-0 top-full pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[1003]">
                 <div className="w-44 bg-white shadow-xl rounded-md border border-stone-200 py-4 px-5 text-sm text-stone-700">
-                  <div
+                  {/* <div
                     className="py-2 cursor-pointer hover:text-black font-medium tracking-wide"
                     onClick={() => navigate("/profile")}
                   >
                     PROFILE
-                  </div>
+                  </div> */}
                   <div
                     className="py-2 cursor-pointer hover:text-black font-medium tracking-wide"
                     onClick={() => navigate("/orders")}

@@ -1,126 +1,123 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Instagram } from 'lucide-react';
-import logo from '../assets/logo.jpeg';
+import logo from '../assets/logo1.png';
 
 const Footer = () => {
   const navigate = useNavigate();
 
-  const handleNav = (categoryName) => {
-    navigate(`/collection?category=${encodeURIComponent(categoryName)}`);
-    window.scrollTo(0, 0); 
-  };
-
   const goTo = (path) => {
     navigate(path);
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const goToCollection = ({ category, occasion, sort } = {}) => {
+    const params = new URLSearchParams();
+    if (category) params.set('category', category);
+    if (occasion) params.set('occasion', occasion);
+    if (sort)     params.set('sort', sort);
+
+    const query = params.toString();
+    navigate(`/collection${query ? `?${query}` : ''}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <footer className="bg-[#78350F] text-[#F5F5F4] pt-16 pb-8 px-6 md:px-12 lg:px-20">
-      <div className="max-w-7xl mx-auto">
-        {/* Improved Responsive Grid: 1 col on mobile, 2 on tablet, 4 on desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12 mb-16">
+    <footer className="relative bg-[#8B4513] text-[#F5F5F4] pt-16 pb-12 px-6 md:px-16 lg:px-24 overflow-hidden border-t border-white/5">
+      <div className="max-w-[1357px] mx-auto">
+        <div className="flex flex-col lg:flex-row justify-between items-start gap-12">
           
-          {/* Column 1: Brand Logo & Contact Info */}
-          <div className="space-y-6">
-            <div className="flex flex-col items-start gap-4">
-              <div className="bg-white/5 p-1 rounded-sm">
-                <img 
-                  src={logo} 
-                  alt="CHLOTHZY Logo" 
-                  className="w-24 md:w-28 h-auto object-contain brightness-110 contrast-105" 
-                  style={{ mixBlendMode: 'lighten' }} 
-                />
-              </div>
-              <div className="space-y-1">
-                <h2 className="text-xl md:text-2xl font-serif font-bold tracking-tighter text-white">CHLOTHZY</h2>
-                <p className="text-[10px] opacity-60 tracking-[0.2em] uppercase">Elegance in every thread</p>
-              </div>
-            </div>
+          {/* Column 1: Brand & Contact */}
+          <div className="flex flex-col gap-8 w-full lg:max-w-[290px]">
             
-            <div className="space-y-3 text-sm opacity-80">
-              <div className="flex gap-3">
-                <span className="font-semibold text-white min-w-[70px]">WhatsApp</span>
-                <span className="text-stone-300">: +91 9211364653</span>
+            {/* LOGO WITH SPECIFIC DIMENSIONS & POSITIONING */}
+            <div 
+              className="cursor-pointer transition-opacity hover:opacity-80"
+              onClick={() => goTo('/')}
+              style={{
+                width: '93px',
+                height: '93px',
+                opacity: 1,
+                rotate: '0deg',
+              }}
+            >
+              <img
+                src={logo}
+                alt="CHLOTHZY"
+                className="w-full h-full object-contain brightness-110"
+                style={{ mixBlendMode: 'lighten' }}
+              />
+            </div>
+
+            {/* Contact Info */}
+            <div className="space-y-2 text-[13px] font-light leading-relaxed">
+              <div className="grid grid-cols-[85px_1fr] gap-0">
+                <span className="font-medium text-white">WhatsApp</span>
+                <span className="text-stone-200">: +91 9211364653</span>
               </div>
-              <div className="flex gap-3">
-                <span className="font-semibold text-white min-w-[70px]">Email</span>
+              <div className="grid grid-cols-[85px_1fr] gap-0">
+                <span className="font-medium text-white">Email</span>
                 <span className="break-all text-stone-300">: contact@chlothzy.shop</span>
               </div>
-              <div className="flex gap-3">
-                <span className="font-semibold text-white min-w-[70px]">Address</span>
+              <div className="grid grid-cols-[85px_1fr] gap-0">
+                <span className="font-medium text-white">Address</span>
                 <span className="text-stone-300">: Unit 132, Malabar Hills, Mumbai, 400006</span>
               </div>
-              
-              <div className="flex items-center gap-3 pt-2">
-                <span className="font-semibold text-white min-w-[70px]">Social</span>
-                <a 
-                  href="https://www.instagram.com/chlothzy/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 hover:text-white transition-colors text-stone-300"
-                >
-                  <Instagram size={14} /> @chlothzy
-                </a>
+              {/* Added Instagram detail here */}
+              <div className="grid grid-cols-[85px_1fr] gap-0 items-center">
+                <span className="font-medium text-white">Instagram</span>
+                <span className="text-stone-300 flex items-center gap-1">
+                  : <a 
+                      href="https://www.instagram.com/chlothzy/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="hover:text-white transition-colors inline-flex items-center gap-1"
+                    >
+                      <Instagram size={12} /> @chlothzy
+                    </a>
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Column 2: Menu */}
-          <div className="lg:pl-8">
-            <h4 className="text-sm font-bold mb-7 text-white uppercase tracking-widest border-b border-white/10 pb-2 inline-block">Menu</h4>
-            <ul className="space-y-3 text-sm opacity-80">
-              {['Sale', 'New Arrivals', 'Formal Men', 'Formal Woman', 'Casual Men', 'Casual Woman'].map((item) => (
-                <li 
-                  key={item} 
-                  onClick={() => handleNav(item)} 
-                  className="hover:text-white cursor-pointer transition-all hover:translate-x-1 inline-block w-full"
-                >
-                  {item}
-                </li>
-              ))}
-            </ul>
+          {/* Navigation Columns */}
+          <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-3 gap-10 lg:gap-4 lg:max-w-[970px]">
+            {/* Shop Column */}
+            <div className="flex flex-col">
+              <h4 className="text-[15px] font-semibold mb-6 text-white capitalize">Menu</h4>
+              <ul className="flex flex-col gap-3 text-[13px] font-light opacity-90">
+                <li onClick={() => goToCollection({ sort: 'discount' })} className="cursor-pointer hover:underline underline-offset-4">Sale</li>
+                <li onClick={() => goToCollection({ sort: 'newest' })} className="cursor-pointer hover:underline underline-offset-4">New Arrivals</li>
+                <li onClick={() => goToCollection({ category: 'men', occasion: 'formal' })} className="cursor-pointer hover:underline underline-offset-4">Formal Men</li>
+                <li onClick={() => goToCollection({ category: 'women', occasion: 'formal' })} className="cursor-pointer hover:underline underline-offset-4">Formal Women</li>
+                <li onClick={() => goToCollection({ category: 'men', occasion: 'casual' })} className="cursor-pointer hover:underline underline-offset-4">Casual Men</li>
+                <li onClick={() => goToCollection({ category: 'women', occasion: 'casual' })} className="cursor-pointer hover:underline underline-offset-4">Casual Women</li>
+              </ul>
+            </div>
+
+            {/* Get Help Column */}
+            <div className="flex flex-col">
+              <h4 className="text-[15px] font-semibold mb-6 text-white capitalize">Get Help</h4>
+              <ul className="flex flex-col gap-3 text-[13px] font-light opacity-90">
+                <li onClick={() => goTo('/faq')} className="cursor-pointer hover:underline underline-offset-4">FAQ</li>
+                <li onClick={() => goTo('/contact')} className="cursor-pointer hover:underline underline-offset-4">Customer Service</li>
+                <li onClick={() => goTo('/returns')} className="cursor-pointer hover:underline underline-offset-4">Refund and Return</li>
+                <li onClick={() => goTo('/terms')} className="cursor-pointer hover:underline underline-offset-4">Terms and Conditions</li>
+                <li onClick={() => goTo('/shipping')} className="cursor-pointer hover:underline underline-offset-4">Shipping</li>
+              </ul>
+            </div>
+
+            {/* Account Column */}
+            <div className="flex flex-col">
+              <h4 className="text-[15px] font-semibold mb-6 text-white capitalize">Account</h4>
+              <ul className="flex flex-col gap-3 text-[13px] font-light opacity-90">
+                <li onClick={() => goTo('/login')} className="cursor-pointer hover:underline underline-offset-4">My Account</li>
+                <li onClick={() => goTo('/orders')} className="cursor-pointer hover:underline underline-offset-4">My Orders</li>
+                <li onClick={() => goToCollection({ occasion: 'offers' })} className="cursor-pointer hover:underline underline-offset-4">Vouchers & Discounts</li>
+              </ul>
+            </div>
           </div>
 
-          {/* Column 3: Get Help */}
-          <div className="lg:pl-4">
-            <h4 className="text-sm font-bold mb-7 text-white uppercase tracking-widest border-b border-white/10 pb-2 inline-block">Get Help</h4>
-            <ul className="space-y-3 text-sm opacity-80">
-              <li onClick={() => goTo('/faq')} className="hover:text-white cursor-pointer transition-all hover:translate-x-1">FAQ</li>
-              <li onClick={() => goTo('/contact')} className="hover:text-white cursor-pointer transition-all hover:translate-x-1">Customer Service</li>
-              <li onClick={() => goTo('/returns')} className="hover:text-white cursor-pointer transition-all hover:translate-x-1">Refund and Return</li>
-              <li onClick={() => goTo('/terms')} className="hover:text-white cursor-pointer transition-all hover:translate-x-1">Terms and Conditions</li>
-              <li onClick={() => goTo('/shipping')} className="hover:text-white cursor-pointer transition-all hover:translate-x-1">Shipping</li>
-            </ul>
-          </div>
-
-          {/* Column 4: Account */}
-          <div>
-            <h4 className="text-sm font-bold mb-7 text-white uppercase tracking-widest border-b border-white/10 pb-2 inline-block">Account</h4>
-            <ul className="space-y-3 text-sm opacity-80">
-              <li onClick={() => goTo('/login')} className="hover:text-white cursor-pointer transition-all hover:translate-x-1">My Account</li>
-              <li onClick={() => goTo('/orders')} className="hover:text-white cursor-pointer transition-all hover:translate-x-1">My Orders</li>
-              <li onClick={() => handleNav('Offers')} className="hover:text-white cursor-pointer transition-all hover:translate-x-1">Vouchers and Discounts</li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Bottom Bar */}
-        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] uppercase tracking-[0.2em] opacity-50">
-          <p className="text-center md:text-left">© {new Date().getFullYear()} CHLOTHZY CLOTHING. ALL RIGHTS RESERVED.</p>
-          <div className="flex gap-8">
-            <a 
-              href="https://www.instagram.com/chlothzy/" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="hover:text-white transition-colors"
-            >
-              INSTAGRAM
-            </a>
-            <span className="cursor-default">FACEBOOK</span>
-            <span className="cursor-default">TWITTER</span>
-          </div>
         </div>
       </div>
     </footer>

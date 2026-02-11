@@ -361,7 +361,7 @@ const ShopContextProvider = (props) => {
       setCartItems({});
       setWishlist([]);
       localStorage.removeItem("cartItems");
-    }
+    }  fetchMaxDiscount();
   }, []);
 
   // Load user-specific data + max discount when token is available
@@ -369,7 +369,7 @@ const ShopContextProvider = (props) => {
     if (token) {
       loadUserCart();
       loadUserWishlist();
-      fetchMaxDiscount();
+     
     }
   }, [token]);
 

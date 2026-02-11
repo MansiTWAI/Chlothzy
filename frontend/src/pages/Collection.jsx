@@ -1,23 +1,28 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import Title from '../components/Title';
 import ProductItem from '../components/ProductItem';
-import { SlidersHorizontal, ChevronDown, Check } from 'lucide-react';
+import { SlidersHorizontal, ChevronDown, Check, X } from 'lucide-react';
 
 const Collection = () => {
   const { products, search, showSearch, filteredProducts } = useContext(ShopContext);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const query = new URLSearchParams(location.search);
+
+  // Read all filter states from URL
+  const category     = query.get('category')?.split(',').map(s => s.trim().toLowerCase()) || [];
+  const subCategory  = query.get('subcategory')?.split(',').map(s => s.trim().toLowerCase()) || [];
+  const color        = query.get('color')?.split(',').map(s => s.trim().toLowerCase()) || [];
+  const occasion     = query.get('occasion')?.split(',').map(s => s.trim().toLowerCase()) || [];
+  const fit          = query.get('fit')?.split(',').map(s => s.trim().toLowerCase()) || [];
+  const fabric       = query.get('fabric')?.split(',').map(s => s.trim().toLowerCase()) || [];
+  const sortType     = query.get('sort') || 'relevant';
 
   const [showFilter, setShowFilter] = useState(false);
   const [filterProducts, setFilterProducts] = useState([]);
-
-  const [category, setCategory] = useState([]);
-  const [subCategory, setSubCategory] = useState([]);
-  const [sortType, setSortType] = useState('relevant');
-  const [color, setColor] = useState([]);
-  const [occasion, setOccasion] = useState([]);
-  const [fit, setFit] = useState([]);
-  const [fabric, setFabric] = useState([]);
-
   const [showAllColors, setShowAllColors] = useState(false);
   const [showAllSubCategories, setShowAllSubCategories] = useState(false);
   const [showAllFabrics, setShowAllFabrics] = useState(false);
@@ -81,19 +86,37 @@ const Collection = () => {
     return colorMap[name.toLowerCase().trim()] || '#CCCCCC';
   };
 
-  const toggleFilter = (value, setState) => {
-    const lower = value.toLowerCase();
-    setState(prev => prev.includes(lower) ? prev.filter(i => i !== lower) : [...prev, lower]);
+  // Toggle any filter and update URL
+  const toggleFilter = (key, value) => {
+    const lowerValue = value.toLowerCase().trim();
+    const current = query.get(key)?.split(',').map(s => s.trim().toLowerCase()) || [];
+    
+    let updated;
+    if (current.includes(lowerValue)) {
+      updated = current.filter(v => v !== lowerValue);
+    } else {
+      updated = [...current, lowerValue];
+    }
+
+    const params = new URLSearchParams(location.search);
+
+    if (updated.length > 0) {
+      params.set(key, updated.join(','));
+    } else {
+      params.delete(key);
+    }
+
+    navigate(`${location.pathname}?${params.toString()}`);
   };
 
-  const toggleCategory    = v => toggleFilter(v, setCategory);
-  const toggleSubCategory = v => toggleFilter(v, setSubCategory);
-  const toggleFit         = v => toggleFilter(v, setFit);
-  const toggleFabric      = v => toggleFilter(v, setFabric);
-  const toggleOccasion    = v => toggleFilter(v, setOccasion);
-  const toggleColor       = v => toggleFilter(v, setColor);
+  const toggleCategory    = v => toggleFilter('category',    v);
+  const toggleSubCategory = v => toggleFilter('subcategory', v);
+  const toggleColor       = v => toggleFilter('color',       v);
+  const toggleOccasion    = v => toggleFilter('occasion',    v);
+  const toggleFit         = v => toggleFilter('fit',         v);
+  const toggleFabric      = v => toggleFilter('fabric',      v);
 
-  // Safe filtering – prevent crashes on missing fields
+  // Apply filters
   const applyFilter = () => {
     let list = showSearch && search?.trim()
       ? [...(filteredProducts || [])]
@@ -123,9 +146,9 @@ const Collection = () => {
 
   useEffect(() => {
     applyFilter();
-  }, [products, search, showSearch, filteredProducts, category, subCategory, color, occasion, fit, fabric]);
+  }, [products, search, showSearch, filteredProducts, location.search]);
 
-  // Sorting – safe version
+  // Sorting
   useEffect(() => {
     if (!filterProducts?.length) return;
 
@@ -142,18 +165,16 @@ const Collection = () => {
         sorted.sort((a, b) => (Number(b?.discount) || 0) - (Number(a?.discount) || 0));
         break;
       case 'newest':
-        sorted.sort((a, b) => {
-          const da = new Date(a?.createdAt || a?.date || 0);
-          const db = new Date(b?.createdAt || b?.date || 0);
-          return db - da;
-        });
+        sorted.sort((a, b) => (b.date || 0) - (a.date || 0));
         break;
       default:
         break;
     }
 
-    setFilterProducts(sorted);
-  }, [sortType]);
+    if (JSON.stringify(sorted) !== JSON.stringify(filterProducts)) {
+      setFilterProducts(sorted);
+    }
+  }, [sortType, filterProducts]);
 
   // Close sort dropdown
   useEffect(() => {
@@ -168,23 +189,30 @@ const Collection = () => {
 
   const ITEMS_TO_SHOW_INITIALLY = 5;
 
-  const displayedColors = showAllColors
-    ? colorOptions
-    : colorOptions.slice(0, ITEMS_TO_SHOW_INITIALLY);
+  const displayedColors = showAllColors ? colorOptions : colorOptions.slice(0, ITEMS_TO_SHOW_INITIALLY);
+  const displayedSubCategories = showAllSubCategories ? subCategoryOptions : subCategoryOptions.slice(0, ITEMS_TO_SHOW_INITIALLY);
+  const displayedFabrics = showAllFabrics ? fabricOptions : fabricOptions.slice(0, ITEMS_TO_SHOW_INITIALLY);
 
-  const displayedSubCategories = showAllSubCategories
-    ? subCategoryOptions
-    : subCategoryOptions.slice(0, ITEMS_TO_SHOW_INITIALLY);
+  const clearAllFilters = () => {
+    navigate('/collection');
+  };
 
-  const displayedFabrics = showAllFabrics
-    ? fabricOptions
-    : fabricOptions.slice(0, ITEMS_TO_SHOW_INITIALLY);
+  const handleSort = (value) => {
+    const params = new URLSearchParams(location.search);
+    if (value === 'relevant') {
+      params.delete('sort');
+    } else {
+      params.set('sort', value);
+    }
+    navigate(`${location.pathname}?${params.toString()}`);
+    setIsSortOpen(false);
+  };
 
   return (
     <div className="max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12 pt-5 pb-16">
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
 
-        {/* FILTER SIDEBAR */}
+        {/* FILTER SIDEBAR - unchanged UI */}
         <div className="lg:w-72 xl:w-80 flex-shrink-0">
           <div
             onClick={() => setShowFilter(!showFilter)}
@@ -198,9 +226,9 @@ const Collection = () => {
 
           <div className={`${showFilter ? 'block' : 'hidden'} lg:block space-y-9 mt-6 lg:mt-0`}>
 
-            <FilterGroup title="Category" items={categoryOptions} selected={category} onChange={toggleCategory} />
-
-            {/* Sub Category */}
+            <FilterGroup title="Category"    items={categoryOptions}    selected={category}    onChange={toggleCategory} />
+            
+            {/* Sub Category - unchanged */}
             <div className="border-b border-stone-200 pb-9">
               <p className="text-xs font-semibold tracking-wide uppercase mb-4">Sub Category</p>
               <div className="flex flex-col gap-2.5">
@@ -230,7 +258,7 @@ const Collection = () => {
 
             <FilterGroup title="Fit" items={fitOptions} selected={fit} onChange={toggleFit} />
 
-            {/* Fabric */}
+            {/* Fabric - unchanged */}
             <div className="border-b border-stone-200 pb-9">
               <p className="text-xs font-semibold tracking-wide uppercase mb-4">Fabric</p>
               <div className="flex flex-col gap-2.5">
@@ -260,7 +288,7 @@ const Collection = () => {
 
             <FilterGroup title="Occasion" items={occasionOptions} selected={occasion} onChange={toggleOccasion} />
 
-            {/* Color */}
+            {/* Color - unchanged */}
             <div className="border-b border-stone-200 pb-9">
               <p className="text-xs font-semibold tracking-wide uppercase mb-4">Color</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
@@ -315,10 +343,7 @@ const Collection = () => {
                     <div
                       key={opt.value}
                       className={`px-5 py-3 text-sm cursor-pointer hover:bg-gray-50 flex justify-between items-center ${sortType === opt.value ? 'bg-gray-50 font-medium' : ''}`}
-                      onClick={() => {
-                        setSortType(opt.value);
-                        setIsSortOpen(false);
-                      }}
+                      onClick={() => handleSort(opt.value)}
                     >
                       {opt.label}
                       {sortType === opt.value && <Check size={14} />}
@@ -333,14 +358,7 @@ const Collection = () => {
             <div className="py-32 text-center text-gray-500">
               <p className="text-lg mb-4">No products found</p>
               <button
-                onClick={() => {
-                  setCategory([]);
-                  setSubCategory([]);
-                  setFit([]);
-                  setFabric([]);
-                  setColor([]);
-                  setOccasion([]);
-                }}
+                onClick={clearAllFilters}
                 className="text-sm underline hover:text-black"
               >
                 Clear all filters
