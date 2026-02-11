@@ -7,9 +7,22 @@ import category3 from '../assets/fit3.png';
 const Categories = () => {
   const navigate = useNavigate();
 
-  const handleClick = (categoryName) => {
-    // Navigate to /collection with query param ?category=...
-    navigate(`/collection?category=${encodeURIComponent(categoryName)}`);
+  const handleClick = ({ category, occasion }) => {
+    const params = new URLSearchParams();
+
+    // Only set if value exists
+    if (category) {
+      params.set('category', category);
+    }
+    if (occasion) {
+      params.set('occasion', occasion);
+    }
+
+    // If no filters → just go to /collection
+    const query = params.toString();
+    const destination = query ? `/collection?${query}` : '/collection';
+
+    navigate(destination);
   };
 
   return (
@@ -17,15 +30,20 @@ const Categories = () => {
       <div className="max-w-[1600px] mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-auto md:h-[750px]">
           
-          {/* Left Column: Stacked Formal Sections */}
+          {/* Left Column: Formal sections */}
           <div className="grid grid-rows-2 gap-6">
+
+            {/* Formal Woman */}
             <div
               className="relative group overflow-hidden cursor-pointer"
-              onClick={() => handleClick('Formal Woman')}
+              onClick={() => handleClick({ 
+                category: 'women', 
+                occasion: 'casual'   // ← change to 'formal' if more appropriate
+              })}
             >
               <img 
                 src={category1} 
-                alt="Formal Woman" 
+                alt="Formal Woman category" 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors flex items-center justify-center md:justify-start p-8 lg:p-12">
@@ -35,13 +53,17 @@ const Categories = () => {
               </div>
             </div>
 
+            {/* Formal Men */}
             <div
               className="relative group overflow-hidden cursor-pointer"
-              onClick={() => handleClick('Men')}
+              onClick={() => handleClick({ 
+                category: 'men', 
+                occasion: 'formal'   // ← adjust if needed
+              })}
             >
               <img 
                 src={category2} 
-                alt="Formal Men" 
+                alt="Formal Men category" 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors flex items-center justify-center md:justify-start p-8 lg:p-12">
@@ -52,14 +74,17 @@ const Categories = () => {
             </div>
           </div>
 
-          {/* Right Column: Tall Casual Section */}
+          {/* Right Column: Casual Style */}
           <div
             className="relative group overflow-hidden cursor-pointer h-[500px] md:h-full"
-            onClick={() => handleClick('Casual Style')}
+            onClick={() => handleClick({ 
+              category: 'women,men',    // or just 'unisex' if you have that category
+              occasion: 'casual'
+            })}
           >
             <img 
               src={category3} 
-              alt="Casual Style" 
+              alt="Casual Style category" 
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors flex items-center justify-center p-8">

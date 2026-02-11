@@ -20,7 +20,7 @@ const LatestCollection = ({
   }, [products, count]);
 
   // Navigate to Collection
-  const goToCollection = () => navigate('/collection');
+  const goToCollection = () => navigate('/collection?sort=newest');
 
   // Check loading state
   const isLoading = !products || products.length === 0;

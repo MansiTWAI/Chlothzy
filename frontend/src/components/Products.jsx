@@ -71,7 +71,7 @@ const Products = ({ title = 'Our Best Sellers', count = 4 }) => {
         {/* See More Button */}
         <div className="mt-10 md:mt-12">
           <button 
-            onClick={() => navigate('/collection')}
+            onClick={() => navigate('/collection?category=women')}
             className="flex items-center justify-between px-8 py-3 bg-[#8B4513] text-white text-[11px] font-bold uppercase tracking-[0.2em] min-w-[180px] hover:bg-[#2D241E] transition-all duration-300"
           >
             <span>See More</span>

@@ -4,7 +4,7 @@ import ProductGrid from '../components/Products';
 import ServiceFeatures from '../components/Services';
 import { Star, Play } from 'lucide-react';
 import img from '../assets/bottom_img.png';
-import Hero from '../Components/Hero';
+import Hero from '../components/Hero';
 import LatestCollection from '../components/LatestCollection';
 
 const Home = () => {

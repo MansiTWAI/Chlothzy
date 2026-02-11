@@ -16,7 +16,7 @@ const ServiceFeatures = () => {
               100% Satisfaction <br /> Guaranteed
             </h3>
             <p className="text-[11px] text-stone-400 leading-relaxed max-w-[220px]">
-              Lorem ipsum dolor sit amet consectetur. Suspendisse laoreet scelerisque morbi vulputate. Quisque bibendum eget id diam elementum fringilla duis.
+              At Chlothzy, we stand by our craftsmanship. If your fit isn't perfect or the quality isn't premium, we'll make it right with effortless returns.
             </p>
           </div>
         </div>
@@ -32,7 +32,7 @@ const ServiceFeatures = () => {
               <div className="space-y-1">
                 <h4 className="text-2xl font-serif text-[#2D241E]">24/7 Online Service</h4>
                 <p className="text-[10px] text-stone-400 leading-relaxed">
-                  Lorem ipsum dolor sit amet consectetur. Suspendisse laoreet scelerisque morbi vulputate.
+                  Our style consultants are available around the clock to help you find the perfect piece for any occasion.
                 </p>
               </div>
             </div>
@@ -47,7 +47,7 @@ const ServiceFeatures = () => {
               <div className="space-y-1">
                 <h4 className="text-2xl font-serif text-[#2D241E]">Fast Delivery</h4>
                 <p className="text-[10px] text-stone-400 leading-relaxed">
-                  Lorem ipsum dolor sit amet consectetur. Suspendisse laoreet scelerisque morbi vulputate.
+                  Experience swift, tracked shipping worldwide. We ensure your wardrobe updates arrive at your doorstep in record time.
                 </p>
               </div>
             </div>
@@ -64,7 +64,7 @@ const ServiceFeatures = () => {
               Payment With <br /> Secure System
             </h3>
             <p className="text-[11px] text-stone-400 leading-relaxed max-w-[220px]">
-              Lorem ipsum dolor sit amet consectetur. Suspendisse laoreet scelerisque morbi vulputate. Quisque bibendum eget id diam elementum fringilla duis.
+              Shop with confidence using our encrypted checkout. We support all major cards and digital wallets for a seamless experience.
             </p>
           </div>
         </div>
