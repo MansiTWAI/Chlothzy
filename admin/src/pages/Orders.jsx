@@ -139,13 +139,26 @@ const Orders = ({ token }) => {
     }
   };
 
-  const handleStatusChange = (e, orderId) => {
-    const value = e.target.value;
-    queueChange(orderId, 'status', value);
-    setOrders(prev =>
-      prev.map(o => (o._id === orderId ? { ...o, status: value } : o))
-    );
-  };
+ const handleStatusChange = (e, orderId) => {
+  const value = e.target.value;
+
+  if (["Delivered", "Cancelled"].includes(value)) {
+    const action = value === "Delivered" ? "mark as Delivered" : "cancel this order";
+    const msg = value === "Delivered"
+      ? "This will mark the order as delivered. This action cannot be undone. Continue?"
+      : "This will CANCEL the order. This cannot be undone. Are you sure?";
+
+    if (!window.confirm(msg)) {
+      return; // user cancelled → don't change status
+    }
+  }
+
+  // if we reached here → either normal status or user confirmed irreversible action
+  queueChange(orderId, 'status', value);
+  setOrders(prev =>
+    prev.map(o => (o._id === orderId ? { ...o, status: value } : o))
+  );
+};
 
   const handleDeliveryChange = (e, orderId) => {
     const value = e.target.value;
@@ -359,7 +372,7 @@ const Orders = ({ token }) => {
                       {!isFinal && <ChevronRight size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 rotate-90" />}
                     </div>
 
-                    {hasPending && !isFinal && (
+                    {hasPending &&  (
                       <button
                         onClick={() => confirmChanges(order._id)}
                         disabled={isUpdating}
