@@ -17,7 +17,6 @@ const Contact = lazy(() => import("./pages/Contact"));
 const Product = lazy(() => import("./pages/Product"));
 const Cart = lazy(() => import("./pages/Cart"));
 const Login = lazy(() => import("./pages/Login"));
-const Profile = lazy(() => import("./pages/Cart"));
 const PlaceOrder = lazy(() => import("./pages/PlaceOrder"));
 const Orders = lazy(() => import("./pages/Orders"));
 const Verification = lazy(() => import("./pages/Verification"));
