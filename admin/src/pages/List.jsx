@@ -130,49 +130,73 @@ const List = ({ token }) => {
     setPreviews({});
   }, []);
 
-  const saveProduct = useCallback(async (product) => {
-    if (isSaving) return;
-    setIsSaving(true);
+ const saveProduct = useCallback(async (product, forced = {}) => {
+  if (isSaving) return;
+  setIsSaving(true);
 
-    const updates = {};
+  const updates = { ...forced };
 
-    if (editData.name?.trim() !== product.name) updates.name = editData.name.trim();
-    if (Number(editData.price) !== Number(product.price)) updates.price = Number(editData.price);
-    if (editData.category?.trim() !== product.category) updates.category = editData.category.trim();
-    if (Number(editData.discount) !== Number(product.discount ?? 0)) {
-      updates.discount = Number(editData.discount);
+  // Update from editData if not forced
+  if (editData.name !== undefined && editData.name.trim() !== product.name) {
+    updates.name = editData.name.trim();
+  }
+
+  if (editData.category !== undefined && editData.category.trim() !== product.category) {
+    updates.category = editData.category.trim();
+  }
+
+  if (editData.price !== undefined && Number(editData.price) !== Number(product.price)) {
+    updates.price = Number(editData.price);
+  }
+
+  if (
+    editData.discount !== undefined &&
+    Number(editData.discount) !== Number(product.discount ?? 0)
+  ) {
+    updates.discount = Number(editData.discount);
+  }
+
+  // Check if any images changed
+  const hasImages = [1, 2, 3, 4].some(i => editData[`image${i}`]);
+  if (Object.keys(updates).length === 0 && !hasImages) {
+    setIsSaving(false);
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('id', product._id);
+
+  Object.entries(updates).forEach(([key, value]) => {
+    formData.append(key, value);
+  });
+
+  for (let i = 1; i <= 4; i++) {
+    const img = editData[`image${i}`];
+    if (img instanceof File) formData.append(`image${i}`, img);
+  }
+
+  try {
+    const { data } = await axios.put(
+      `${backendUrl}/api/product/update`,
+      formData,
+      { headers: { token } }
+    );
+
+    if (data?.success) {
+      toast.success('Product updated');
+      await fetchProducts();
+      cancelEdit();
+    } else {
+      toast.error(data?.message || 'Update failed');
     }
+  } catch (err) {
+    console.error(err);
+    toast.error('Failed to update product');
+  } finally {
+    setIsSaving(false);
+  }
+}, [isSaving, editData, token, fetchProducts, cancelEdit]);
 
-    const formData = new FormData();
-    formData.append('id', product._id);
-
-    Object.entries(updates).forEach(([k, v]) => formData.append(k, v));
-
-    // Only append changed images
-    for (let i = 1; i <= 4; i++) {
-      if (editData[`image${i}`]) {
-        formData.append(`image${i}`, editData[`image${i}`]);
-      }
-    }
-
-    try {
-      const { data } = await axios.put(`${backendUrl}/api/product/update`, formData, {
-        headers: { token, 'Content-Type': 'multipart/form-data' },
-      });
-
-      if (data.success) {
-        toast.success('Product updated');
-        await fetchProducts();
-        cancelEdit();
-      } else {
-        toast.error(data.message || 'Update failed');
-      }
-    } catch {
-      toast.error('Failed to update product');
-    } finally {
-      setIsSaving(false);
-    }
-  }, [isSaving, editData, token, fetchProducts, cancelEdit]);
 
   const removeProduct = useCallback(async (id) => {
     if (!window.confirm('Delete product permanently?')) return;
@@ -554,34 +578,31 @@ const updateMaxDiscount = useCallback(async () => {
                     </button>
 
                     <div className="flex items-center bg-stone-50 border border-stone-200 rounded-xl px-2 py-1">
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="1"
-                        defaultValue={product.discount ?? 0}
-                        className="w-14 text-center text-sm font-bold bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        onBlur={(e) => {
-                          const val = Number(e.target.value);
-                          if (val !== Number(product.discount ?? 0)) {
-                            saveProduct({ ...product, discount: val });
-                          }
-                        }}
-                      />
-                      <span className="text-xs text-stone-500 mx-1">%</span>
-                      <button
-                        className="bg-stone-700 text-white p-1.5 rounded-lg hover:bg-stone-800"
-                        onClick={(e) => {
-                          const input = e.currentTarget.parentElement.querySelector('input');
-                          const val = Number(input?.value);
-                          if (val !== Number(product.discount ?? 0)) {
-                            saveProduct({ ...product, discount: val });
-                          }
-                        }}
-                      >
-                        <Tag size={16} />
-                      </button>
-                    </div>
+  <input
+    type="number"
+    min="0"
+    max="100"
+    step="1"
+    defaultValue={product.discount ?? 0}
+    className="w-14 text-center text-sm font-bold bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+  />
+  <span className="text-xs text-stone-500 mx-1">%</span>
+  <button
+    className="bg-stone-700 text-white p-1.5 rounded-lg hover:bg-stone-800"
+    onClick={(e) => {
+      const input = e.currentTarget.parentElement.querySelector('input');
+      const val = Number(input?.value ?? 0);
+
+      if (val !== Number(product.discount ?? 0)) {
+        // Pass as forced update
+        saveProduct(product, { discount: val });
+      }
+    }}
+  >
+    <Tag size={16} />
+  </button>
+</div>
+
 
                     <button
                       onClick={() => removeProduct(product._id)}
