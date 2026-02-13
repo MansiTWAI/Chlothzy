@@ -2,9 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { assets } from '../assets/assets';
 
 const TrackOrder = ({ order, onBack, currency }) => {
-  // Logic to handle Cancelled status separately for a cleaner UI
+  // Define formatDate inside the component
+  const formatDate = (timestamp) => {
+    if (!timestamp) return '—';
+    return new Date(timestamp).toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  // Logic to handle Cancelled status separately for cleaner UI
   const isCancelled = order?.status === "Cancelled";
-  const standardSteps = ["Order Placed", "Packing", "Shipped", "Out for Delivery", "Delivered"];
+  const standardSteps = ["Order Placed", "Packing", "Shipped", "Out For Delivery", "Delivered"];
   const statusSteps = isCancelled ? ["Order Placed", "Cancelled"] : standardSteps;
 
   const [currentStepIndex, setCurrentStepIndex] = useState(
@@ -21,10 +31,12 @@ const TrackOrder = ({ order, onBack, currency }) => {
   const copyOrderId = () => {
     if (order?.orderId) {
       navigator.clipboard.writeText(order.orderId);
-      // Modern toast alternative for better UX
       alert("Order ID copied to clipboard!");
     }
   };
+
+  // Calculate line total (price × quantity)
+  const lineTotal = (order?.displayPrice || 0) * (order?.quantity || 1);
 
   return (
     <div className="bg-[#faf7f5] min-h-screen p-4 sm:p-8 md:p-12 animate-fadeIn">
@@ -41,7 +53,7 @@ const TrackOrder = ({ order, onBack, currency }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
               </svg>
             </div>
-            Back to Dashboard
+            Back to Orders
           </button>
           
           <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-gray-400">
@@ -53,61 +65,117 @@ const TrackOrder = ({ order, onBack, currency }) => {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Left: Product Aesthetic Card */}
-          <div className="lg:col-span-4 space-y-6">
-            <div className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-[#8B4513]/5 border border-[#8B4513]/5 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#8B4513]/5 rounded-bl-full -mr-10 -mt-10 tracking-tighter"></div>
-              
-              <div className="relative aspect-square rounded-3xl overflow-hidden mb-8 shadow-inner bg-[#fdfaf8]">
-                <img
-                  src={Array.isArray(order?.image) ? order.image[0] : order?.image || assets.parcel_icon}
-                  alt={order?.name}
-                  className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
-                />
-              </div>
+          {/* Left: Product + Delivery Details Card */}
+<div className="lg:col-span-5 space-y-6 lg:sticky lg:top-8">
+  {/* Product Aesthetic Card */}
+  <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-xl shadow-[#8B4513]/5 border border-[#8B4513]/5">
+    {/* Product Header with Order ID */}
+    <div className="p-6 pb-0 flex justify-between items-start">
+      <div>
+        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Order Reference</span>
+        <div onClick={copyOrderId} className="flex items-center gap-2 cursor-pointer group">
+          <p className="text-sm font-mono font-bold text-[#3d2b1f]">#{order?.orderId?.slice(-8) || 'N/A'}</p>
+          <svg className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#8B4513]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+        </div>
+      </div>
+      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${isCancelled ? 'bg-rose-50 text-rose-600' : 'bg-orange-50 text-orange-700'}`}>
+        {order?.status}
+      </span>
+    </div>
 
-              <div className="space-y-4 relative">
-                <h2 className="font-serif text-2xl text-[#3d2b1f] leading-tight italic">
-                  {order?.name || "Premium Selection"}
-                </h2>
-                
-                <div className="flex items-end gap-2">
-                   <p className="text-[#8B4513] font-black text-3xl">
-                    {currency}{Number(order?.displayPrice || 0).toLocaleString('en-IN')}
-                  </p>
-                  <span className="text-gray-400 text-sm mb-1.5 font-medium">/ total</span>
-                </div>
+    <div className="p-8">
+      <div className="relative aspect-square rounded-3xl overflow-hidden mb-6 shadow-sm bg-[#fdfaf8]">
+        <img
+          src={Array.isArray(order?.image) ? order.image[0] : order?.image || assets.parcel_icon}
+          alt={order?.name}
+          className="w-auto h-fit object-cover transform hover:scale-105 transition-transform duration-700"
+        />
+      </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-6 border-t border-gray-50">
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Quantity</p>
-                    <p className="text-[#3d2b1f] font-bold">× {order?.quantity || 1}</p>
-                  </div>
-                  {order?.size && (
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Size</p>
-                      <p className="text-[#3d2b1f] font-bold">{order.size}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Action Card */}
-            <div className="bg-[#3d2b1f] rounded-[2rem] p-6 text-white flex items-center justify-between group cursor-pointer overflow-hidden relative">
-               <div className="relative z-10">
-                 <p className="text-xs font-bold text-white/60 uppercase tracking-widest mb-1">Reference ID</p>
-                 <p className="font-mono text-lg tracking-tighter">#{(order?.orderId || '...').slice(-8).toUpperCase()}</p>
-               </div>
-               <button onClick={copyOrderId} className="bg-white/10 p-3 rounded-2xl hover:bg-white/20 transition-colors relative z-10">
-                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-               </button>
-               <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-10 -mt-10"></div>
-            </div>
+      <div className="space-y-4">
+        <h2 className="font-serif text-2xl text-[#3d2b1f] leading-tight italic">
+          {order?.name || "Premium Selection"}
+        </h2>
+        
+        <div className="flex items-baseline justify-between pt-2">
+          <div className="flex items-end gap-2">
+            <p className="text-[#8B4513] font-black text-3xl">
+              {currency}{Number(order?.displayPrice || 0).toLocaleString('en-IN')}
+            </p>
+            <span className="text-gray-400 text-xs mb-1.5 font-medium">/ unit</span>
           </div>
+          <div className="text-right">
+             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Qty</p>
+             <p className="text-[#3d2b1f] font-bold text-lg">0{order?.quantity || 1}</p>
+          </div>
+        </div>
+
+        {/* Pricing Summary Table */}
+        <div className="bg-[#faf7f5] rounded-2xl p-4 space-y-2 mt-4">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Subtotal</span>
+            <span className="font-medium text-[#3d2b1f]">{currency}{lineTotal.toLocaleString('en-IN')}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Shipping</span>
+            <span className="text-emerald-600 font-medium">Free</span>
+          </div>
+          <div className="h-[1px] bg-gray-200 my-2"></div>
+          <div className="flex justify-between items-center">
+            <span className="font-bold text-[#3d2b1f]">Total Amount</span>
+            <span className="text-xl font-black text-[#8B4513]">{currency}{lineTotal.toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {/* Delivery Details Card */}
+  <div className="bg-white rounded-[2rem] p-8 shadow-lg shadow-[#8B4513]/5 border border-[#8B4513]/5">
+    <div className="flex items-center gap-3 mb-6">
+      <div className="w-10 h-10 bg-[#8B4513]/5 rounded-xl flex items-center justify-center text-[#8B4513]">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+      </div>
+      <h3 className="font-serif text-xl text-[#3d2b1f]">Shipping Destination</h3>
+    </div>
+    
+    <div className="space-y-5">
+      <div className="flex flex-col">
+        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] mb-1">Recipient</span>
+        <span className="font-bold text-[#3d2b1f] text-lg">{order?.userName || '—'}</span>
+        <span className="text-sm text-gray-500 mt-1 flex items-center gap-2">
+           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+           {order?.userPhone || '—'}
+        </span>
+      </div>
+
+      <div className="flex flex-col pt-4 border-t border-gray-50">
+        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] mb-2">Delivery Address</span>
+        <div className="bg-[#faf7f5]/50 p-4 rounded-2xl border border-gray-100">
+          <p className="text-[#3d2b1f] text-sm leading-relaxed italic">
+            {order?.fullAddress?.street},<br />
+            {order?.fullAddress?.city}, {order?.fullAddress?.state}<br />
+            <span className="font-bold not-italic">{order?.fullAddress?.pincode}</span>
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-50">
+        <div>
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em]">Method</span>
+          <p className="text-sm font-bold text-[#3d2b1f] mt-1">{order?.paymentMethod || '—'}</p>
+        </div>
+        <div>
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em]">Date</span>
+          <p className="text-sm font-bold text-[#3d2b1f] mt-1">{formatDate(order?.date)}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
           {/* Right: Journey Timeline */}
-          <div className="lg:col-span-8">
+          <div className="lg:col-span-7">
             <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-xl shadow-[#8B4513]/5 border border-[#8B4513]/5">
               <div className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
                 <div>
@@ -123,10 +191,10 @@ const TrackOrder = ({ order, onBack, currency }) => {
               <div className="relative">
                 {/* Visual Progress Track */}
                 <div className="absolute left-[19px] md:left-[23px] top-2 bottom-2 w-[3px] bg-gray-100 rounded-full overflow-hidden">
-                   <div 
+                  <div 
                     className={`w-full transition-all duration-1000 ease-in-out ${isCancelled ? 'bg-rose-400' : 'bg-[#8B4513]'}`}
                     style={{ height: `${progress}%` }}
-                   />
+                  />
                 </div>
 
                 <div className="space-y-12">
