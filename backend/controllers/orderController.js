@@ -187,6 +187,112 @@ const userOrders = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+//update order 
+const canEditOrder = (status, role) => {
+
+  const userEditableStatuses = [
+    "Order Placed",
+    "Confirmed",
+    "Packing"
+  ];
+
+  const adminEditableStatuses = [
+    "Order Placed",
+    "Confirmed",
+    "Packing",
+    "Shipped",
+    "Out For Delivery"
+  ];
+
+  if (role === "admin") {
+    return adminEditableStatuses.includes(status);
+  }
+
+  return userEditableStatuses.includes(status);
+};
+
+// UPDATE ORDER DETAILS (admin + user)
+
+const updateOrderDetails = async (req, res) => {
+  try {
+    const { orderId, name, phone, address, items } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({ success: false, message: "orderId is required" });
+    }
+
+    const order = await orderModel.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    // USER CHECK (if updating via user route)
+    if (req.user && req.user.role !== "admin") {
+      if (order.userId.toString() !== req.user.id) {
+        return res.status(403).json({ success: false, message: "Not allowed" });
+      }
+
+      if (["Delivered", "Cancelled"].includes(order.status)) {
+        return res.status(400).json({ success: false, message: "Cannot edit delivered/cancelled order" });
+      }
+    }
+
+    // UPDATE ADDRESS / CONTACT FIELDS
+    if (name) order.address.name = name;
+    if (phone) order.address.phone = phone;
+
+    if (address && typeof address === "object") {
+      order.address.street = address.street || order.address.street;
+      order.address.city = address.city || order.address.city;
+      order.address.state = address.state || order.address.state;
+      order.address.pincode = address.pincode || order.address.pincode;
+      order.address.country = address.country || order.address.country;
+    }
+
+    // UPDATE ITEMS (quantity & size)
+    if (Array.isArray(items)) {
+      for (const updatedItem of items) {
+        if (!updatedItem.productId) continue;
+
+        const existingItem = order.items.find(i => i.productId.toString() === updatedItem.productId);
+        if (!existingItem) continue;
+
+        if (updatedItem.quantity) existingItem.quantity = Number(updatedItem.quantity);
+        if (updatedItem.size) existingItem.size = updatedItem.size;
+
+        // Optional: recalc final price if needed
+        if (updatedItem.quantity || updatedItem.size) {
+          const product = await productModel.findById(updatedItem.productId);
+          if (product) {
+            existingItem.price = product.price;
+            existingItem.finalPrice = product.finalPrice;
+          }
+        }
+      }
+
+      // Recalculate order total
+      order.amount = order.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
+    }
+
+    // Tell Mongoose nested objects changed
+    order.markModified("address");
+    order.markModified("items");
+
+    // SAVE ORDER
+    await order.save();
+
+    res.json({
+      success: true,
+      message: "Order updated",
+      order
+    });
+
+  } catch (err) {
+    console.error("Update order details error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 
 // UPDATE STATUS + DELIVERY DATE (admin)
 const updateStatus = async (req, res) => {
@@ -322,4 +428,4 @@ const cancelOrder = async (req, res) => {
   }
 };
 
-export { placeOrder, allOrders, userOrders, updateStatus, cancelOrder };
+export { placeOrder, allOrders, userOrders, updateStatus, cancelOrder, updateOrderDetails, canEditOrder };

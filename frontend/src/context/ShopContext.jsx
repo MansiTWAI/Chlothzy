@@ -1,4 +1,10 @@
-import { createContext, useEffect, useState, useCallback, useMemo } from "react";
+import {
+  createContext,
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -41,7 +47,7 @@ const ShopContextProvider = (props) => {
     debounce((value) => {
       setDebouncedSearch(value.trim());
     }, 300),
-    []
+    [],
   );
 
   const handleSearchChange = (e) => {
@@ -101,7 +107,7 @@ const ShopContextProvider = (props) => {
         await axios.post(
           backendUrl + "/api/cart/add",
           { itemId, size },
-          { headers: getAuthHeaders() }
+          { headers: getAuthHeaders() },
         );
       } catch (error) {
         console.error(error);
@@ -129,7 +135,7 @@ const ShopContextProvider = (props) => {
         await axios.post(
           backendUrl + "/api/cart/update",
           { itemId, size, quantity },
-          { headers: getAuthHeaders() }
+          { headers: getAuthHeaders() },
         );
       } catch (error) {
         console.error(error);
@@ -145,14 +151,14 @@ const ShopContextProvider = (props) => {
       const response = await axios.post(
         backendUrl + "/api/cart/get",
         {},
-        { headers: getAuthHeaders() }
+        { headers: getAuthHeaders() },
       );
 
       if (response.data.success) {
         setCartItems(response.data.cartData || {});
         localStorage.setItem(
           "cartItems",
-          JSON.stringify(response.data.cartData || {})
+          JSON.stringify(response.data.cartData || {}),
         );
       }
     } catch (error) {
@@ -217,14 +223,14 @@ const ShopContextProvider = (props) => {
       const response = await axios.post(
         backendUrl + "/api/wishlist/toggle",
         { productId },
-        { headers: getAuthHeaders() }
+        { headers: getAuthHeaders() },
       );
 
       if (response.data.success) {
         setWishlist((prev) =>
           prev.includes(productId)
             ? prev.filter((id) => id !== productId)
-            : [...prev, productId]
+            : [...prev, productId],
         );
       }
     } catch (error) {
@@ -246,7 +252,7 @@ const ShopContextProvider = (props) => {
       const response = await axios.post(
         backendUrl + "/api/order/cancel",
         { orderId },
-        { headers: getAuthHeaders() }
+        { headers: getAuthHeaders() },
       );
 
       if (response.data.success) {
@@ -283,7 +289,7 @@ const ShopContextProvider = (props) => {
 
     const discount = Math.min(
       product.discount || 0,
-      maxDiscount.isActive ? maxDiscount.value : 100
+      maxDiscount.isActive ? maxDiscount.value : 100,
     );
 
     if (discount <= 0) return product.price;
@@ -294,7 +300,7 @@ const ShopContextProvider = (props) => {
     if (!product?.discount || product.discount <= 0) return 0;
     return Math.min(
       product.discount,
-      maxDiscount.isActive ? maxDiscount.value : 100
+      maxDiscount.isActive ? maxDiscount.value : 100,
     );
   };
 
@@ -302,7 +308,7 @@ const ShopContextProvider = (props) => {
     if (!product?.discount || product.discount <= 0) return 0;
     const effectiveDiscount = Math.min(
       product.discount,
-      maxDiscount.isActive ? maxDiscount.value : 100
+      maxDiscount.isActive ? maxDiscount.value : 100,
     );
     return Math.round(product.price * (effectiveDiscount / 100));
   };
@@ -328,6 +334,67 @@ const ShopContextProvider = (props) => {
       hasDiscount,
     };
   };
+
+ // User can edit only these statuses
+const canUserEditOrder = (status) => {
+  return ["Order Placed", "Confirmed", "Packing"].includes(status);
+};
+
+// Main function: update user's own order (address + items)
+const updateMyOrder = async (orderId, updates, currentStatus) => {
+  if (!token) {
+    toast.error("Please login to update order");
+    return { success: false };
+  }
+
+  // Frontend safety check
+  if (!canUserEditOrder(currentStatus)) {
+    toast.warn(`Cannot edit order anymore (status: ${currentStatus})`);
+    return { success: false };
+  }
+
+  try {
+    const payload = {
+      orderId,
+      ...updates, // e.g. { name, phone, address: {...}, items: [...] }
+    };
+
+    const res = await axios.put(
+      `${backendUrl}/api/order/update`,  // ← user route
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          token: token // both — covers your possible middleware variations
+        }
+      }
+    );
+
+    if (res.data.success) {
+      toast.success("Order updated successfully");
+      return { success: true, updatedOrder: res.data.order };
+    } else {
+      toast.error(res.data.message || "Update failed");
+      return { success: false };
+    }
+  } catch (err) {
+    const msg = err?.response?.data?.message || "Failed to update order";
+    toast.error(msg);
+    console.error("User order update failed:", err);
+    return { success: false };
+  }
+};
+
+// Convenience: update single item quantity/size
+const updateMyOrderItem = async (orderId, productId, quantity, size, currentStatus) => {
+  return updateMyOrder(orderId, {
+    items: [{
+      productId,
+      quantity: Number(quantity),
+      size: size || undefined
+    }]
+  }, currentStatus);
+};
 
   // ---------------- SEARCH LOGIC (OPTIMIZED) ----------------
   const filteredProducts = useMemo(() => {
@@ -361,7 +428,8 @@ const ShopContextProvider = (props) => {
       setCartItems({});
       setWishlist([]);
       localStorage.removeItem("cartItems");
-    }  fetchMaxDiscount();
+    }
+    fetchMaxDiscount();
   }, []);
 
   // Load user-specific data + max discount when token is available
@@ -369,7 +437,6 @@ const ShopContextProvider = (props) => {
     if (token) {
       loadUserCart();
       loadUserWishlist();
-     
     }
   }, [token]);
 
@@ -389,7 +456,6 @@ const ShopContextProvider = (props) => {
 
     maxDiscount,
     fetchMaxDiscount,
-   
 
     cartItems,
     addToCart,
@@ -409,6 +475,10 @@ const ShopContextProvider = (props) => {
     formatPrice,
     getPriceDisplay,
 
+    canUserEditOrder,
+    updateMyOrder,
+    updateMyOrderItem,
+
     navigate,
     backendUrl,
     setToken,
@@ -417,9 +487,7 @@ const ShopContextProvider = (props) => {
   };
 
   return (
-    <ShopContext.Provider value={value}>
-      {props.children}
-    </ShopContext.Provider>
+    <ShopContext.Provider value={value}>{props.children}</ShopContext.Provider>
   );
 };
 
